@@ -1,7 +1,7 @@
 main: db.c
-	gcc -o db db.c
+	gcc -o db.out db.c
 	@echo ------
-	./db
+	./db.out
 
 clean:
-	rm ./db
+	rm ./db.out
