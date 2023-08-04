@@ -4,10 +4,10 @@
 .vs/
 
 # output file
-.out
-.exe
-.a
-.apk
+*.out
+*.exe
+*.a
+*.apk
 
 # output folder
 bin/
