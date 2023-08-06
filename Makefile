@@ -4,4 +4,4 @@ main: db.c
 	./db.out
 
 clean:
-	rm ./db.out
+	-rm ./db.out

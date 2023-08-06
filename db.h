@@ -19,7 +19,9 @@ typedef enum {
 
 typedef enum {
   PREPARE_SUCCESS,
+  PREPARE_NEGATIVE_ID,
   PREPARE_SYNTAX_ERROR,
+  PREPARE_STRING_TOO_LONG,
   PREPARE_UNRECOGNIZED_STATEMENT,
 } PrepareResult;
 
@@ -43,8 +45,8 @@ typedef enum {
 
 typedef struct {
   uint32_t id;
-  char username[COLUMN_USERNAME_SIZE];
-  char email[COLUMN_EMAIL_SIZE];
+  char username[COLUMN_USERNAME_SIZE + 1];
+  char email[COLUMN_EMAIL_SIZE + 1];
 } Row;
 
 const uint32_t ID_SIZE = size_of_attribute(Row, id);
@@ -61,8 +63,14 @@ const uint32_t ROWS_PER_PAGE = PAGE_SIZE / ROW_SIZE;
 const uint32_t TABLE_MAX_ROWS = TABLE_MAX_PAGES * ROWS_PER_PAGE;
 
 typedef struct {
-  uint32_t num_rows;
+  int file_descriptor;
+  uint32_t file_length;
   void* pages[TABLE_MAX_PAGES];
+} Pager;
+
+typedef struct {
+  Pager* pager;
+  uint32_t num_rows;
 } Table;
 
 typedef struct {
@@ -106,6 +114,14 @@ MetaCommandResult do_meta_command(InputBuffer* ib, Table* table);
 PrepareResult prepare_statement(InputBuffer* ib, Statement* sm);
 
 /**
+ * @brief 预编译insert指令
+ * @param ib 输入数据
+ * @param sm 编译后的结果
+ * @return 编译是否成功
+ */
+PrepareResult prepare_insert(InputBuffer* ib, Statement* sm);
+
+/**
  * @brief 计算table中特定行的内存起始位置
  * @param table 数据表
  * @param row_num 第几行
@@ -138,13 +154,36 @@ ExecuteResult execute_statement(Statement* sm, Table* table);
  * @brief 申请一张新Table
  * @return
  */
-Table* new_table();
+Table* db_open(const char*);
 
 /**
- * @brief 释放表空间
+ * @brief 获取第{page_num}页的地址
+ * @param pager
+ * @param page_num
+ * @return
+ */
+void* get_page(Pager* pager, uint32_t page_num);
+
+/**
+ * @brief 关闭数据库，内存文件刷入磁盘，释放内存空间
  * @param table
  */
-void free_table(Table* table);
+void db_close(Table* table);
+
+/**
+ * @brief 将第page_num页的数据刷入磁盘
+ * @param pager
+ * @param page_num
+ * @param size
+ */
+void pager_flush(Pager* pager, uint32_t page_num, uint32_t size);
+
+/**
+ * @brief 构造持久化
+ * @param filename
+ * @return
+ */
+Pager* pager_open(const char* filename);
 
 /**
  * @brief 获取输入

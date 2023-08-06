@@ -17,3 +17,12 @@
 An In-Memory, Append-Only, Single-Table Database
 
 内存中单表数据库，命令解析，插入，执行
+
+## Part 4
+
+编写单元测试
+
+## Part 5
+
+添加持久化存储，将数据写入文件，在关闭数据库时，使用[db_cloce()](./db.c#223)写入文件，执行文件时从文件中读取数据并序列化到内存中。
+
